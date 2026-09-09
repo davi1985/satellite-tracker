@@ -1,0 +1,33 @@
+# Render Blueprint - deploys the ws-server (web) and the Go worker (background).
+# Set the Redis connection vars in the Render dashboard or via environment groups:
+
+services:
+  - type: web
+    name: satellite-ws-server
+    runtime: node
+    rootDir: ws-server
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: node dist/index.js
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: REDIS_URL
+        sync: false
+      - key: REDIS_CHANNEL
+        value: satellite:positions
+      - key: FRONTEND_DIR
+        sync: false
+
+  - type: worker
+    name: satellite-worker
+    runtime: go
+    rootDir: satellite-worker
+    plan: free
+    buildCommand: go build -o satellite-worker ./cmd/satellite-worker/
+    startCommand: ./satellite-worker
+    envVars:
+      - key: REDIS_ADDR
+        sync: false
+      - key: REDIS_CHANNEL
+        value: satellite:positions

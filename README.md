@@ -137,3 +137,45 @@ Note: the full `active` group (16k+ objects) requires frequent updates and stric
 - **Update frequency**: adjust `time.NewTicker(1 * time.Second)` in the worker
 - **Groups**: edit the `Groups` list in `satellite-worker/internal/config/config.go`
 - **Earth imagery**: swap the `imageryProvider` in `frontend/src/components/SatelliteGlobe/utils/viewer.ts`
+
+## Deployment (Render + Vercel)
+
+The app splits into three parts for cloud hosting:
+
+| Component            | Host              | Notes                                   |
+|----------------------|-------------------|-----------------------------------------|
+| Frontend (Vercel)    | Vercel            | Static site, no server runtime          |
+| WS server            | Render (web)      | WebSocket + `/health`                   |
+| Go worker            | Render (worker)   | Fetches TLEs, publishes to Redis        |
+| Redis pub/sub        | Upstash / Redis Cloud (free tier) | Render's managed Redis is paid |
+
+### 1. Redis (free)
+
+Use [Upstash](https://upstash.com) or [Redis Cloud](https://redis.com) free tier (both support pub/sub).
+You get a `REDIS_URL` (e.g. `rediss://...`) and a host:port for `REDIS_ADDR`.
+
+### 2. Render — WS server + Go worker
+
+A `render.yaml` blueprint is included. In the Render dashboard use **New → Blueprint** and pick this repo.
+
+Environment variables to set in Render:
+
+- **satellite-ws-server** (web): `REDIS_URL` (Upstash URL form)
+- **satellite-worker** (worker): `REDIS_ADDR` (Upstash host:port form)
+
+`FRONTEND_DIR` can stay empty — Vercel serves the frontend, so static hosting on Render is not needed (non-`/ws` routes return 404, which is harmless).
+
+Free-tier notes: the web service spins down after 15 min without traffic and wakes on the next WebSocket connection (~40s). The worker runs continuously (≈720 h/month, within the 750 h free allowance).
+
+### 3. Vercel — frontend
+
+Settings: **Root Directory** `frontend`, framework **Vite**, output `dist`.
+
+Add an environment variable `VITE_WS_URL` = `https://<satellite-ws-server>.onrender.com` (HTTPS so it upgrades to `wss://`). Set it for **Production** (and Preview if you want). The frontend falls back to `location.host` when unset (local dev).
+
+```bash
+# Example (local check of the redirect)
+curl -s "https://<app>.vercel.app" -o /dev/null -w "%{http_code}\n"
+curl -s "https://<satellite-ws-server>.onrender.com/health"
+# {"status":"ok","clients":0}
+```
