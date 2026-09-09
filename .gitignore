@@ -1,0 +1,19 @@
+# Go
+satellite-worker/satellite-worker
+
+# Node
+node_modules/
+
+# TS build
+ws-server/dist/
+
+# Vite build
+frontend/dist/
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.*
+!.env.example
