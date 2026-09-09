@@ -16,9 +16,12 @@ Read the files **in order**. Each builds on the previous.
 
 ## Practical mapping
 
-```
-Celestrak API ──► satellite-worker (Go) ──► Redis pub/sub ──► ws-server (Node) ──► frontend (React)
-                     docs/01               (mailbox)            docs/02               docs/03
+```mermaid
+flowchart LR
+    A["Celestrak API"] -->|"TLE"| B["satellite-worker (Go)<br><small>docs/01</small>"]
+    B -->|"positions (JSON)"| C["Redis pub/sub (mailbox)"]
+    C -->|"positions"| D["ws-server (Node)<br><small>docs/02</small>"]
+    D -->|"WebSocket push"| E["frontend (React)<br><small>docs/03</small>"]
 ```
 
 Each doc ends with **Questions to test yourself** — answer them without looking

@@ -22,35 +22,18 @@ every browser**.
 
 ## Overview
 
-```
-                       ┌────────────────────────────────────────────┐
-   ┌──────────┐        │           HIGH-LEVEL VIEW                │
-   │CelesTrak │  TLE   │                                            │
-   │   API    ├───────►│  GO WORKER (satellite-worker)             │
-   └──────────┘        │  1. downloads TLEs for 5 groups            │
-                       │  2. propagates with SGP4 every 1s          │
-                       │  3. publishes positions on Redis           │
-                       └──────────────┬─────────────────────────────┘
-                                      │ POSITIONS (JSON)
-                                      ▼
-                       ┌─────────────────────────────┐
-                       │        REDIS PUB/SUB        │  ← "mailbox"
-                       │     channel: satellite:pos.  │     in the middle
-                       └──────────────┬──────────────┘
-                                      │ new message
-                                      ▼
-                       ┌─────────────────────────────┐
-                       │  NODE WS-SERVER (ws-server) │
-                       │  listens to Redis, forwards │
-                       │  to ALL WebSockets          │
-                       └──────────────┬──────────────┘
-                                      │ WebSocket (push)
-                                      ▼
-                       ┌─────────────────────────────┐
-                       │     FRONTEND (React)        │
-                       │  Cesium.js renders on the   │
-                       │  3D globe, once per second  │
-                       └─────────────────────────────┘
+```mermaid
+flowchart TD
+    CEL["CelesTrak API"]
+    GO["GO WORKER (satellite-worker)<br>1. downloads TLEs for 5 groups<br>2. propagates with SGP4 every 1s<br>3. publishes positions on Redis"]
+    REDIS["REDIS PUB/SUB<br><i>channel: satellite:positions</i><br><small>'mailbox' in the middle</small>"]
+    NODE["NODE WS-SERVER (ws-server)<br>listens to Redis, forwards<br>to ALL WebSockets"]
+    FRONT["FRONTEND (React)<br>Cesium.js renders on the<br>3D globe, once per second"]
+
+    CEL -->|"TLE"| GO
+    GO -->|"positions (JSON)"| REDIS
+    REDIS -->|"new message"| NODE
+    NODE -->|"WebSocket (push)"| FRONT
 ```
 
 ## The data path, step by step

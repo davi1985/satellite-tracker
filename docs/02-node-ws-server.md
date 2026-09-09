@@ -277,20 +277,25 @@ and `tsconfig.json`:
 
 ## The full wiring, once more
 
-```
-loadConfig()                 ← PORT, REDIS_URL, REDIS_CHANNEL, FRONTEND_DIR
-      │
-      ├─► createServer({ cfg, healthHandler })   → HTTP + /health + static
-      │        │
-      │        └─ new WebSocketServer({ server, path: '/ws' })
-      │                                        └─ createBroadcaster(wss)
-      │                                               │ (latestData)
-      └─► subscribeToPositions({
-              redisUrl, channel, onMessage: broadcaster.broadcast
-           })
-                  │  ← Redis pushes a message every 1s
-                  ▼
-           broadcaster.broadcast(json)  →  every connected ws.send(json)
+```mermaid
+flowchart TD
+    ENV["PORT, REDIS_URL,<br>REDIS_CHANNEL, FRONTEND_DIR"]
+    CFG["loadConfig()"]
+    SERVER["createServer({ cfg, healthHandler })"]
+    HTTP["HTTP + /health + static"]
+    WSS["new WebSocketServer({ server, path: '/ws' })"]
+    BCAST["createBroadcaster(wss)<br><small>(latestData)</small>"]
+    SUB["subscribeToPositions({<br>redisUrl, channel,<br>onMessage: broadcaster.broadcast })"]
+    REDIS["Redis pushes a message every 1s"]
+    SEND["broadcaster.broadcast(json)"]
+    CLI["every connected ws.send(json)"]
+
+    ENV --> CFG --> SERVER --> HTTP
+    SERVER --> WSS --> BCAST
+    CFG --> SUB --> REDIS
+    REDIS -->|onMessage| SEND
+    BCAST --> SEND
+    SEND --> CLI
 ```
 
 ## Questions to test yourself

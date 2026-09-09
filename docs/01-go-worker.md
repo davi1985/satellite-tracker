@@ -258,14 +258,16 @@ There's nothing to parallelize.
 
 ## How the data pieces connect (mental map)
 
-```
-config.TLEGroup ──► fetcher.LoadSatellites ──► []fetcher.SatRecord
-                                                   │ (has *sgp4.TLE)
-                                                   ▼
-                              propagator.ComputePositions ──► []propagator.SatellitePos
-                                                                │
-                                                                ▼
-                             publisher.Publish (JSON → Redis channel)
+```mermaid
+flowchart TD
+    CFG["config.TLEGroup"]
+    FETCH["fetcher.LoadSatellites"]
+    REC["[]fetcher.SatRecord<br><small>(has *sgp4.TLE)</small>"]
+    PROP["propagator.ComputePositions"]
+    POS["[]propagator.SatellitePos"]
+    PUB["publisher.Publish<br><small>JSON → Redis channel</small>"]
+
+    CFG --> FETCH --> REC --> PROP --> POS --> PUB
 ```
 
 - `fetcher` knows how to **get** data.

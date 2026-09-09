@@ -295,19 +295,15 @@ const wsUrl = (): string => {
 
 ## The complete React data flow
 
-```
-WebSocket ──onmessage──► setQueryData(['satellites'], data)
-                              │
-                              ▼
-                     useSatellites() re-renders
-                     App re-renders → SatelliteGlobe receives sats
-                              │
-                              ▼
-               useEffect([sats]) diffs Map<id, entity>
-               create new / update existing / remove missing
-                              │
-                              ▼
-                     Cesium renders the frame
+```mermaid
+flowchart TD
+    WS["WebSocket"]
+    CACHE["setQueryData(['satellites'], data)"]
+    RENDER["useSatellites() re-renders<br>App re-renders → SatelliteGlobe receives sats"]
+    DIFF["useEffect([sats]) diffs Map&lt;id, entity&gt;<br>create new / update existing / remove missing"]
+    CESIUM["Cesium renders the frame"]
+
+    WS -->|"onmessage"| CACHE --> RENDER --> DIFF --> CESIUM
 ```
 
 ## Questions to test yourself
