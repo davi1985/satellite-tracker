@@ -2,6 +2,10 @@
 
 Real-time satellite tracker using CelesTrak TLE data with SGP4 orbital propagation.
 
+> **New here? Read the [step-by-step documentation](docs/README.md)** — it walks
+> through the architecture and teaches the Go, Node.js and React concepts used
+> in each service.
+
 ## Architecture
 
 ```
