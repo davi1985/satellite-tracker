@@ -6,6 +6,8 @@ import { SATELLITES_KEY } from './useSatellites'
 const RECONNECT_DELAY = 3000
 
 const wsUrl = (): string => {
+  const custom = import.meta.env.VITE_WS_URL as string | undefined
+  if (custom) return `${custom.replace(/\/+$/, '')}/ws`
   const proto = location.protocol === 'https:' ? 'wss' : 'ws'
   return `${proto}://${location.host}/ws`
 }
