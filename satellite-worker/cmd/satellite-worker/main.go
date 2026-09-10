@@ -42,14 +42,19 @@ func main() {
 			log.Println("Shutting down...")
 			return
 		case now := <-ticker.C:
-			positions := propagator.ComputePositions(sats, now.UTC())
+			now = now.UTC()
+			frame := &propagator.Frame{
+				Time:      now.UnixMilli(),
+				GMST:      propagator.ComputeGMST(now),
+				Positions: propagator.ComputePositions(sats, now),
+			}
 
-			if err := publisher.Publish(ctx, pub, cfg.Channel, positions); err != nil {
+			if err := publisher.Publish(ctx, pub, cfg.Channel, frame); err != nil {
 				log.Printf("Error publishing to Redis: %v", err)
 				continue
 			}
 
-			log.Printf("Published %d satellite positions", len(positions))
+			log.Printf("Published %d satellite positions", len(frame.Positions))
 		}
 	}
 }

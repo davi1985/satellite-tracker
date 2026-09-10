@@ -36,8 +36,8 @@ func (p *redisPublisher) Close() error {
 	return p.client.Close()
 }
 
-func Publish(ctx context.Context, pub Publisher, channel string, positions []propagator.SatellitePos) error {
-	data, err := json.Marshal(positions)
+func Publish(ctx context.Context, pub Publisher, channel string, frame *propagator.Frame) error {
+	data, err := json.Marshal(frame)
 	if err != nil {
 		return fmt.Errorf("marshaling positions: %w", err)
 	}

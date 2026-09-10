@@ -18,6 +18,20 @@ type SatellitePos struct {
 	Group string  `json:"group"`
 }
 
+type Frame struct {
+	Time      int64          `json:"time"`
+	GMST      float64        `json:"gmst"`
+	Positions []SatellitePos `json:"positions"`
+}
+
+// ComputeGMST returns Greenwich Mean Sidereal Time in radians at the given
+// instant, using the exact same formula as the sgp4 library's
+// GreenwichSiderealTime so the value matches the Earth rotation applied by
+// ToGeodetic.
+func ComputeGMST(now time.Time) float64 {
+	return (&sgp4.Eci{DateTime: now.UTC()}).GreenwichSiderealTime()
+}
+
 func ComputePositions(sats []fetcher.SatRecord, now time.Time) []SatellitePos {
 	positions := make([]SatellitePos, 0, len(sats))
 
