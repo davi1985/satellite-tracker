@@ -7,6 +7,12 @@ export interface SatellitePos {
   group: string
 }
 
+export interface SatelliteFrame {
+  time: number
+  gmst: number
+  positions: SatellitePos[]
+}
+
 export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected'
 
 export const GROUPS = [

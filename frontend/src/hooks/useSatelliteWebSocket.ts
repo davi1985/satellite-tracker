@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import type { ConnectionStatus, SatellitePos } from '../@types/types'
+import type { ConnectionStatus, SatelliteFrame, SatellitePos } from '../@types/types'
+import { setSiderealAnchor } from '../components/SatelliteGlobe/three/sidereal'
 import { SATELLITES_KEY } from './useSatellites'
 
 const RECONNECT_DELAY = 3000
@@ -36,8 +37,20 @@ export const useSatelliteWebSocket = (): {
       socket.onmessage = (event) => {
         if (disposed) return
         try {
-          const data = JSON.parse(event.data) as SatellitePos[]
-          queryClient.setQueryData(SATELLITES_KEY, data)
+          const raw = JSON.parse(event.data) as unknown
+
+          const frame = raw as SatelliteFrame
+          if (Array.isArray(frame)) {
+            queryClient.setQueryData(SATELLITES_KEY, raw as SatellitePos[])
+            setLastUpdate(new Date())
+            return
+          }
+
+          if (!Array.isArray(frame?.positions)) return
+          if (Number.isFinite(frame.gmst) && Number.isFinite(frame.time)) {
+            setSiderealAnchor(frame.gmst, frame.time)
+          }
+          queryClient.setQueryData(SATELLITES_KEY, frame.positions)
           setLastUpdate(new Date())
         } catch (err) {
           console.error('Failed to parse message:', err)
