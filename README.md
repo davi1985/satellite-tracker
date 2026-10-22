@@ -183,3 +183,7 @@ curl -s "https://<app>.vercel.app" -o /dev/null -w "%{http_code}\n"
 curl -s "https://<satellite-ws-server>.onrender.com/health"
 # {"status":"ok","clients":0}
 ```
+
+## License
+
+This project is under the [MIT license](./LICENSE).
